@@ -12,7 +12,7 @@ RAMP ecosystem : [RAMP](http:www.ramp.studio)
 
 
 
-`ramp-worflow`](https://github.com/paris-saclay-cds/ramp-workflow) for more help on the [RAMP](http:www.ramp.studio) ecosystem.
+[`ramp-worflow`](https://github.com/paris-saclay-cds/ramp-workflow) for more help on the [RAMP](http:www.ramp.studio) ecosystem.
 
 Install ramp-workflow (rampwf), then execute
 

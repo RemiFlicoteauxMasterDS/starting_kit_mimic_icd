@@ -8,15 +8,19 @@ from sklearn import model_selection
 
 problem_title = 'Medical text classification in ICD 9 thesaurus'
 _target_column_name = 'TARGET'
-#Get the references from ICD thesaurus
-ref_icd=pd.read_csv('./data/D_ICD_DIAGNOSES.csv',dtype={'ROW_ID':np.int32,
-                                                      'ICD9_CODE': str,
-                                                      'SHORT_TITLE': str,
-                                                      'LONG_TITLE':  str})
-#labels will be icd9 chapters
-ref_icd['ICD9_CHAP']=ref_icd['ICD9_CODE'].str.slice(0,3)
 
-_prediction_label_names = ref_icd['ICD9_CHAP'].unique()
+_prediction_label_names = [ '403', '048', '585', '425', '276', '724', '458', '287', '285',
+       '275', '327', '338', '789', '790', '410', '414', '331', '530',
+       '411', '482', '272', '305', '197', '424', '584', '682', '511',
+       '599', '428', '401', '041', '571', '070', '250', '057', '572',
+       '286', '518', '038', '280', '263', '303', '244', '112', '441',
+       '049', '440', '274', '427', '569', '560', '491', '433', '043',
+       '493', '416', '765', '076', '779', '774', '770', '362', '198',
+       '780', '357', '293', '443', '031', '600', '294', '284', '553',
+       '426', '707', '348', '787', '564', '300', '788', '453', '413',
+       '507', '162', '785', '799', '574', '296', '733', '578', '438',
+       '008', '593', '345', '519', '278', '715', '415', '535', '576',
+       '288', '567', '786', '784', '729', '434', '456', '577', '562', '291']
 # A type (class) which will be used to create wrapper objects for y_pred
 Predictions = rw.prediction_types.make_multiclass(
     label_names=_prediction_label_names)
