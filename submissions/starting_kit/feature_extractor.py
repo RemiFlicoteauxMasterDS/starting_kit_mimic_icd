@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 from sklearn.feature_extraction.text import TfidfVectorizer
+from keras.preprocessing.sequence import pad_sequences
 from collections import Counter
-from keras.preprocessing.text import Tokenizer
 import unicodedata
 import pandas as pd
 import numpy as np
@@ -63,10 +63,8 @@ class FeatureExtractor(TfidfVectorizer):
 
     def __init__(self):
         self.min_occur = 1
-        self.max_length = -1
-        self.vocab_size = -1
-        self.tokenizer = Tokenizer() # create the tokenizer
-         
+        self.tfidf = TfidfVectorizer(ngram_range=(1, 1))
+        self.vocab = Counter()
         super(FeatureExtractor, self).__init__(
                 analyzer='word',stop_words ='english', preprocessor=document_preprocessor)
 
@@ -79,30 +77,32 @@ class FeatureExtractor(TfidfVectorizer):
             a DataFrame, where the text data is stored in the ``TEXT``
             column.
         """
-        
-        super(FeatureExtractor, self).fit(X_df.TEXT)
-        
-        
+        statements = pd.Series(X_df.TEXT).apply(clean_text_simple)
+        self.vocab = Counter()
+        for statement in statements:
+            self.vocab.update(statement)   
+        tokens = [k for k,c in self.vocab.items() if c >= self.min_occur]      
+        statements = statements.apply(lambda x: [w for w in x if w in tokens])
+        statements = statements.apply(lambda x: ' '.join(x))
+        statements = list(statements.values)
+        self.tfidf.fit(statements)
         return self
 
     def fit_transform(self, X_df, y=None):
+        
         self.fit(X_df)
         return self.transform(self.X_df)
 
     def transform(self, X_df):
 
         statements = pd.Series(X_df.TEXT).apply(clean_text_simple)
-
-        vocab = Counter()
-        for statement in statements:
-            vocab.update(statement)
-        tokens = [k for k,c in vocab.items() if c >= self.min_occur]
+        tokens = [k for k,c in self.vocab.items() if c >= self.min_occur]      
+        
         statements = statements.apply(lambda x: [w for w in x if w in tokens])
         statements = statements.apply(lambda x: ' '.join(x))
         statements = list(statements.values)
-        vec_c = TfidfVectorizer(ngram_range=(1, 1))
-        tf_idf = vec_c.fit_transform(statements)
-        return tf_idf
+        X_fe=self.tfidf.transform(statements)
+        return X_fe
 
     def build_tokenizer(self):
         """
