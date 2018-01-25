@@ -1,3 +1,7 @@
 data/
 Test ICD mimic.ipynb
 make_embeddings.py
+__pycache__
+.ipynb_checkpoints
+.DS_Store
+submissions/starting_kit/__pycache__/
