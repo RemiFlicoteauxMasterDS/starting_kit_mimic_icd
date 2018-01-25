@@ -23,11 +23,11 @@ _prediction_label_names = [ '403', '048', '585', '425', '276', '724', '458', '28
 
 _target_column_names = _prediction_label_names
 # A type (class) which will be used to create wrapper objects for y_pred
-Predictions = rw.prediction_types.make_multiclass(
-    label_names=_prediction_label_names)
+#Predictions = rw.prediction_types.make_multiclass(
+#    label_names=_prediction_label_names)
 
 # An object implementing the workflow
-workflow = rw.workflows.FeatureExtractorClassifier()
+#workflow = rw.workflows.FeatureExtractorClassifier()
 
 soft_score_matrix = np.array(np.diag(np.ones(len(_prediction_label_names))))
 
@@ -41,8 +41,16 @@ true_false_score_matrix = np.array(np.diag(np.ones(len(_prediction_label_names))
 #     rw.score_types.SoftAccuracy(
 #         name='tfacc', score_matrix=true_false_score_matrix, precision=3),
 # ]
-score_types = [rw.score_types.Accuracy(name = 'acc' , precision=3)]
+#score_types = [rw.score_types.Accuracy(name = 'acc' , precision=3)]
+# A type (class) which will be used to create wrapper objects for y_pred
+Predictions = rw.prediction_types.make_regression(
+    label_names=_target_column_names)
+# An object implementing the workflow
+workflow = rw.workflows.FeatureExtractorRegressor()
 
+score_types = [
+    rw.score_types.RMSE(name='rmse', precision=1),
+]
 
 def get_cv(X, y):
     n_splits = 8
