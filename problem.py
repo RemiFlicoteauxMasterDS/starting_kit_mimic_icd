@@ -7,7 +7,6 @@ from sklearn.model_selection import ShuffleSplit
 from sklearn.preprocessing import MultiLabelBinarizer
 
 problem_title = 'Medical text classification in ICD 9 thesaurus'
-_target_column_name = 'TARGET'
 
 _prediction_label_names = [ '403', '048', '585', '425', '276', '724', '458', '287', '285',
        '275', '327', '338', '789', '790', '410', '414', '331', '530',
@@ -21,6 +20,8 @@ _prediction_label_names = [ '403', '048', '585', '425', '276', '724', '458', '28
        '507', '162', '785', '799', '574', '296', '733', '578', '438',
        '008', '593', '345', '519', '278', '715', '415', '535', '576',
        '288', '567', '786', '784', '729', '434', '456', '577', '562', '291']
+
+_target_column_names = _prediction_label_names
 # A type (class) which will be used to create wrapper objects for y_pred
 Predictions = rw.prediction_types.make_multiclass(
     label_names=_prediction_label_names)
@@ -33,18 +34,17 @@ soft_score_matrix = np.array(np.diag(np.ones(len(_prediction_label_names))))
 true_false_score_matrix = np.array(np.diag(np.ones(len(_prediction_label_names))))
 
 
-score_types = [
-    rw.score_types.SoftAccuracy(
-        name='sacc', score_matrix=soft_score_matrix, precision=3),
-    rw.score_types.Accuracy(name='acc', precision=3),
-    rw.score_types.SoftAccuracy(
-        name='tfacc', score_matrix=true_false_score_matrix, precision=3),
-]
+# score_types = [
+#     rw.score_types.SoftAccuracy(
+#         name='sacc', score_matrix=soft_score_matrix, precision=3),
+#     rw.score_types.Accuracy(name='acc', precision=3),
+#     rw.score_types.SoftAccuracy(
+#         name='tfacc', score_matrix=true_false_score_matrix, precision=3),
+# ]
+score_types = [rw.score_types.Accuracy(name = 'acc' , precision=3)]
 
 
 def get_cv(X, y):
-    print(type(X))
-    print(type(y))
     n_splits = 8
     cv = ShuffleSplit(n_splits=n_splits, test_size=0.5, random_state=57)
     return cv.split(X, y)

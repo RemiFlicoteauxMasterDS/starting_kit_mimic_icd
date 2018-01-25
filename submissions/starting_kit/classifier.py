@@ -12,17 +12,26 @@ class Classifier():
         #self.raw_embedding = load_embedding_from_url(url='http://nlp.stanford.edu/data/glove.6B.zip', filename='glove.6B.200d.txt')
         self.clf = RandomForestClassifier()
         # self.metaclf = XGBClassifier()
-
     def fit(self, X, y):
 
         self.clf.fit(X, y)
 
     def predict(self, X):
-        y_proba = self.predict_proba(X)
-        y = np.argmax(y_proba, axis=1)
-        return y
+        y_pred = np.array(self.clf.predict(X))
+        print('Hello')
+        print(y_pred)
+        return y_pred
 
     def predict_proba(self, X):
-        y_proba = self.clf.predict_proba(X)
-        print (y_proba[0].shape)
-        return  y_proba
+        proba = self.clf.predict_proba(X)
+        res = []
+        for x in proba:
+            temp = []
+            for i,y in enumerate(x):
+                if y[0] == 1.:
+                    temp.append(0)
+                else:
+                    temp.append(1)
+            res.append(temp)
+        y_proba = np.array(res).T
+        return 0.1 * np.ones_like(y_proba)
