@@ -3,8 +3,8 @@ import os
 import pandas as pd
 import numpy as np
 import rampwf as rw
-from datetime import timedelta
-from sklearn import model_selection
+from sklearn.model_selection import ShuffleSplit
+from sklearn.preprocessing import MultiLabelBinarizer
 
 problem_title = 'Medical text classification in ICD 9 thesaurus'
 _target_column_name = 'TARGET'
@@ -43,23 +43,31 @@ score_types = [
 
 
 def get_cv(X, y):
-    """Slice folds by equal date intervals."""
+    print(type(X))
+    print(type(y))
     n_splits = 8
-    for i in range(n_splits):
-        train_is, test_is = model_selection.train_test_split(np.arange(len(y)))
-        yield train_is, test_is
+    cv = ShuffleSplit(n_splits=n_splits, test_size=0.5, random_state=57)
+    return cv.split(X, y)
+
+
 
 def _read_data(path, f_name):
     data = pd.read_csv(os.path.join(path, 'data', f_name), sep=',',
                           dtype={'HADM_ID':np.int32, 'TEXT':str, 'TARGET':str})
-    # Re expand icd9 --> make one code by line
-    data['TARGET']=data['TARGET'].apply(lambda x : eval(x))
-    rows = []
-    _ = data.apply(lambda row: [rows.append([row['HADM_ID'],row['TEXT'],nn]) 
-                         for nn in row.TARGET], axis=1)
-    data = pd.DataFrame(rows, columns=data.columns)
-    y_array = data[_target_column_name].values
-    X_df = data.drop(_target_column_name, axis=1)
+    
+    # Re expand icd9 -->  One hot encode the target
+    mlb = MultiLabelBinarizer()
+    
+    data['TARGET'] = data['TARGET'].apply(lambda x : eval(x))
+    temp = mlb.fit_transform(data['TARGET'])
+    
+    for i,x in enumerate(mlb.classes_):
+        data[x] = temp[ : , i ]
+    
+    del data['TARGET']
+    
+    y_array = data[_prediction_label_names].values
+    X_df = data.drop(_prediction_label_names, axis=1)
     test = os.getenv('RAMP_TEST_MODE', 0)
     if test:
         return X_df[:100], y_array[:100]

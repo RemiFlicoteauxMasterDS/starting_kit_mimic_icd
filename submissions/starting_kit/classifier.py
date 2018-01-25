@@ -24,5 +24,5 @@ class Classifier():
 
     def predict_proba(self, X):
         y_proba = self.clf.predict_proba(X)
-        
+        print (y_proba[0].shape)
         return  y_proba
