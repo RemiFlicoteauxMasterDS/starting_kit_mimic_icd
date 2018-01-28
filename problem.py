@@ -34,23 +34,32 @@ soft_score_matrix = np.array(np.diag(np.ones(len(_prediction_label_names))))
 true_false_score_matrix = np.array(np.diag(np.ones(len(_prediction_label_names))))
 
 
-# score_types = [
-#     rw.score_types.SoftAccuracy(
-#         name='sacc', score_matrix=soft_score_matrix, precision=3),
-#     rw.score_types.Accuracy(name='acc', precision=3),
-#     rw.score_types.SoftAccuracy(
-#         name='tfacc', score_matrix=true_false_score_matrix, precision=3),
-# ]
-#score_types = [rw.score_types.Accuracy(name = 'acc' , precision=3)]
-# A type (class) which will be used to create wrapper objects for y_pred
-Predictions = rw.prediction_types.make_regression(
-    label_names=_target_column_names)
-# An object implementing the workflow
-workflow = rw.workflows.FeatureExtractorRegressor()
 
-score_types = [
-    rw.score_types.RMSE(name='rmse', precision=1),
-]
+# A type (class) which will be used to create wrapper objects for y_pred
+predictions = []
+for x in _prediction_label_names: 
+     predictions.append(rw.prediction_types.make_multiclass(
+    label_names= ['0','1'] ))
+
+Predictions = rw.prediction_types.make_combined(predictions)
+
+# An object implementing the workflow
+workflow = rw.workflows.FeatureExtractorClassifier()
+
+score_types = []
+#List to record the score we passed 
+score_f1 = []
+score_acc = []
+for i,pred in enumerate(predictions):
+    sc = rw.score_types.F1Above(name = 'f1_' + str(i) , precision = 3 )
+    score_f1.append(rw.score_types.F1Above(name = 'f1_' + str(i) , precision = 3 ))
+    score_acc.append(rw.score_types.Accuracy(name = 'acc_' + str(i), precision = 3 ))
+    #score_types.append(rw.score_types.MakeCombined(score_type = sc , index = i ))
+
+weights = list(1/len(score_acc) * np.ones_like(score_acc))
+score_types.append(rw.score_types.Combined(name = 'combined_accuracy' , score_types = score_acc,precision = 3 , weights = weights))
+score_types.append(rw.score_types.Combined(name = 'combined_f1' , score_types = score_f1, precision = 3 ,weights = weights))
+                       
 
 def get_cv(X, y):
     n_splits = 8

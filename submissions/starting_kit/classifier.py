@@ -18,20 +18,20 @@ class Classifier():
 
     def predict(self, X):
         y_pred = np.array(self.clf.predict(X))
-        print('Hello')
-        print(y_pred)
         return y_pred
 
     def predict_proba(self, X):
+        """
+        Compte the probailities for each label
+        Important: this class needs to return an 2D array with 2 columns per label, so 109*2 columns. """
         proba = self.clf.predict_proba(X)
-        res = []
-        for x in proba:
-            temp = []
-            for i,y in enumerate(x):
-                if y[0] == 1.:
-                    temp.append(0)
-                else:
-                    temp.append(1)
-            res.append(temp)
-        y_proba = np.array(res).T
-        return 0.1 * np.ones_like(y_proba)
+        #Proba is a list of size 109, one for each label, each element is an array of size n_samples * 2,
+        #except some times when it is n_sample*1 so a little work is needed to reshape the array
+        y_proba = proba[0]
+        for x in proba[1 : ] :
+            if x.shape[1] == 2 : 
+                y_proba = np.hstack((y_proba,x))
+            else:
+                y_proba = np.hstack((y_proba,x,np.zeros_like(x)))
+                             
+        return y_proba
