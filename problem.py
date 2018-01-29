@@ -5,6 +5,21 @@ import numpy as np
 import rampwf as rw
 from sklearn.model_selection import ShuffleSplit
 from sklearn.preprocessing import MultiLabelBinarizer
+from sklearn.metrics import fbeta_score
+#Our own custom score 
+
+class Fbeta(rw.score_types.classifier_base.ClassifierBaseScoreType):
+    is_lower_the_better = False
+    minimum = 0.0
+    maximum = 1.0
+
+    def __init__(self, name='Fbeta',beta=2):
+        self.name = name
+        self.beta = beta
+
+    def __call__(self, y_true, y_pred):
+        fbeta = fbeta_score(y_true, y_pred, average='weighted', beta=self.beta)
+        return fbeta
 
 problem_title = 'Medical text classification in ICD 9 thesaurus'
 
@@ -43,15 +58,18 @@ score_types = []
 #List to record the score we passed 
 score_f1 = []
 score_acc = []
+score_f1_beta = []
 for i,pred in enumerate(predictions):
     #Add an f1 score and accuracy score 
     score_f1.append(rw.score_types.F1Above(name = 'f1_' + str(i) , precision = 3 ))
     score_acc.append(rw.score_types.Accuracy(name = 'acc_' + str(i), precision = 3 ))
-    
+    score_f1_beta.append(Fbeta(name = 'fbeta_' + str(i))) 
+
 #Each label has equal weights 
 weights = list(1/len(score_acc) * np.ones_like(score_acc))
 score_types.append(rw.score_types.Combined(name = 'combined_accuracy' , score_types = score_acc,precision = 3 , weights = weights))
 score_types.append(rw.score_types.Combined(name = 'combined_f1' , score_types = score_f1, precision = 3 ,weights = weights))
+score_types.append(rw.score_types.Combined(name = 'combined_f1_beta' , score_types = score_f1_beta, precision = 3 ,weights = weights))
                        
 
 def get_cv(X, y):
