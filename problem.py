@@ -21,26 +21,19 @@ _prediction_label_names = [ '403', '048', '585', '425', '276', '724', '458', '28
        '008', '593', '345', '519', '278', '715', '415', '535', '576',
        '288', '567', '786', '784', '729', '434', '456', '577', '562', '291']
 
-_target_column_names = _prediction_label_names
-# A type (class) which will be used to create wrapper objects for y_pred
-#Predictions = rw.prediction_types.make_multiclass(
-#    label_names=_prediction_label_names)
-
-# An object implementing the workflow
-#workflow = rw.workflows.FeatureExtractorClassifier()
-
-soft_score_matrix = np.array(np.diag(np.ones(len(_prediction_label_names))))
-
-true_false_score_matrix = np.array(np.diag(np.ones(len(_prediction_label_names))))
 
 
 
-# A type (class) which will be used to create wrapper objects for y_pred
+
+
+
+#We make one binary class prediction for each code 
 predictions = []
 for x in _prediction_label_names: 
      predictions.append(rw.prediction_types.make_multiclass(
     label_names= ['0','1'] ))
 
+#Combine the predictions 
 Predictions = rw.prediction_types.make_combined(predictions)
 
 # An object implementing the workflow
@@ -51,11 +44,11 @@ score_types = []
 score_f1 = []
 score_acc = []
 for i,pred in enumerate(predictions):
-    sc = rw.score_types.F1Above(name = 'f1_' + str(i) , precision = 3 )
+    #Add an f1 score and accuracy score 
     score_f1.append(rw.score_types.F1Above(name = 'f1_' + str(i) , precision = 3 ))
     score_acc.append(rw.score_types.Accuracy(name = 'acc_' + str(i), precision = 3 ))
-    #score_types.append(rw.score_types.MakeCombined(score_type = sc , index = i ))
-
+    
+#Each label has equal weights 
 weights = list(1/len(score_acc) * np.ones_like(score_acc))
 score_types.append(rw.score_types.Combined(name = 'combined_accuracy' , score_types = score_acc,precision = 3 , weights = weights))
 score_types.append(rw.score_types.Combined(name = 'combined_f1' , score_types = score_f1, precision = 3 ,weights = weights))
@@ -80,7 +73,7 @@ def _read_data(path, f_name):
     
     for i,x in enumerate(mlb.classes_):
         data[x] = temp[ : , i ]
-    
+    #No need for the target 
     del data['TARGET']
     
     y_array = data[_prediction_label_names].values
