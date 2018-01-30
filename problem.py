@@ -69,7 +69,7 @@ for i,pred in enumerate(predictions):
 weights = list(1/len(score_acc) * np.ones_like(score_acc))
 score_types.append(rw.score_types.Combined(name = 'combined_accuracy' , score_types = score_acc,precision = 3 , weights = weights))
 score_types.append(rw.score_types.Combined(name = 'combined_f1' , score_types = score_f1, precision = 3 ,weights = weights))
-score_types.append(rw.score_types.Combined(name = 'combined_f2' , score_types = score_f2, precision = 3 ,weights = weights))
+score_types.append(rw.score_types.Combined(name = 'f2' , score_types = score_f2, precision = 3 ))
 
 
 def get_cv(X, y):
