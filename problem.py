@@ -6,7 +6,7 @@ import rampwf as rw
 from sklearn.model_selection import ShuffleSplit
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.metrics import fbeta_score
-#Our own custom score 
+#Our own custom score
 
 class Fbeta(rw.score_types.classifier_base.ClassifierBaseScoreType):
     is_lower_the_better = False
@@ -42,35 +42,35 @@ _prediction_label_names = [ '403', '048', '585', '425', '276', '724', '458', '28
 
 
 
-#We make one binary class prediction for each code 
+#We make one binary class prediction for each code
 predictions = []
-for x in _prediction_label_names: 
+for x in _prediction_label_names:
      predictions.append(rw.prediction_types.make_multiclass(
     label_names= ['0','1'] ))
 
-#Combine the predictions 
+#Combine the predictions
 Predictions = rw.prediction_types.make_combined(predictions)
 
 # An object implementing the workflow
 workflow = rw.workflows.FeatureExtractorClassifier()
 
 score_types = []
-#List to record the score we passed 
+#List to record the score we passed
 score_f1 = []
 score_acc = []
-score_f1_beta = []
+score_f2 = []
 for i,pred in enumerate(predictions):
-    #Add an f1 score and accuracy score 
+    #Add an f1 score and accuracy score
     score_f1.append(rw.score_types.F1Above(name = 'f1_' + str(i) , precision = 3 ))
     score_acc.append(rw.score_types.Accuracy(name = 'acc_' + str(i), precision = 3 ))
-    score_f1_beta.append(Fbeta(name = 'fbeta_' + str(i))) 
+    score_f2.append(Fbeta(name = 'f2_' + str(i),beta=2))
 
-#Each label has equal weights 
+#Each label has equal weights
 weights = list(1/len(score_acc) * np.ones_like(score_acc))
 score_types.append(rw.score_types.Combined(name = 'combined_accuracy' , score_types = score_acc,precision = 3 , weights = weights))
 score_types.append(rw.score_types.Combined(name = 'combined_f1' , score_types = score_f1, precision = 3 ,weights = weights))
-score_types.append(rw.score_types.Combined(name = 'combined_f1_beta' , score_types = score_f1_beta, precision = 3 ,weights = weights))
-                       
+score_types.append(rw.score_types.Combined(name = 'combined_f2' , score_types = score_f2, precision = 3 ,weights = weights))
+
 
 def get_cv(X, y):
     n_splits = 8
@@ -82,18 +82,18 @@ def get_cv(X, y):
 def _read_data(path, f_name):
     data = pd.read_csv(os.path.join(path, 'data', f_name), sep=',',
                           dtype={'HADM_ID':np.int32, 'TEXT':str, 'TARGET':str})
-    
+
     # Re expand icd9 -->  One hot encode the target
     mlb = MultiLabelBinarizer()
-    
+
     data['TARGET'] = data['TARGET'].apply(lambda x : eval(x))
     temp = mlb.fit_transform(data['TARGET'])
-    
+
     for i,x in enumerate(mlb.classes_):
         data[x] = temp[ : , i ]
-    #No need for the target 
+    #No need for the target
     del data['TARGET']
-    
+
     y_array = data[_prediction_label_names].values
     X_df = data.drop(_prediction_label_names, axis=1)
     test = os.getenv('RAMP_TEST_MODE', 0)

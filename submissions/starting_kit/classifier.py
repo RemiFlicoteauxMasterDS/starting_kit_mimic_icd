@@ -1,6 +1,7 @@
 
 from __future__ import unicode_literals
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.multioutput import MultiOutputClassifier
 from collections import Counter
 import pandas as pd
 import numpy as np
@@ -9,8 +10,9 @@ import numpy as np
 
 class Classifier():
     def __init__(self):
-        #self.raw_embedding = load_embedding_from_url(url='http://nlp.stanford.edu/data/glove.6B.zip', filename='glove.6B.200d.txt')
-        self.clf = RandomForestClassifier()
+        forest = RandomForestClassifier(n_estimators=100, random_state=1)
+        self.clf = MultiOutputClassifier(forest, n_jobs=-1)
+        #self.clf  = RandomForestClassifier()
         # self.metaclf = XGBClassifier()
     def fit(self, X, y):
 

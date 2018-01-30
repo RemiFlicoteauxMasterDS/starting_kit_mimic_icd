@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 from sklearn.feature_extraction.text import TfidfVectorizer
-from keras.preprocessing.sequence import pad_sequences
 from collections import Counter
 import unicodedata
 import pandas as pd
@@ -8,7 +7,9 @@ import numpy as np
 import string
 import re
 from nltk.corpus import stopwords
+from nltk.stem import SnowballStemmer
 
+stemmer = SnowballStemmer('english')
 stpwrds = set([stopword for stopword in stopwords.words('english')])
 stpwrds.update({'admission', 'birth', 'date', 'discharge', 'service','sex'})
 punct = set(string.punctuation.replace('-', ''))
@@ -46,17 +47,6 @@ def document_preprocessor(doc):
     doc = doc.encode('ascii', 'ignore')
     doc = doc.decode("utf-8")
     return str(doc)
-
-
-from nltk.stem import SnowballStemmer
-
-stemmer = SnowballStemmer('english')
-
-def token_processor(tokens):
-    for token in tokens:
-        #remove special chars
-        token=''.join(e for e in token if e.isalnum())
-        yield stemmer.stem(token)
 
 class FeatureExtractor(TfidfVectorizer):
     """Convert a collection of raw docs to a matrix of TF-IDF features. """
@@ -103,11 +93,3 @@ class FeatureExtractor(TfidfVectorizer):
         statements = list(statements.values)
         X_fe=self.tfidf.transform(statements)
         return X_fe
-
-    def build_tokenizer(self):
-        """
-        Internal function, needed to plug-in the token processor, cf.
-        http://scikit-learn.org/stable/modules/feature_extraction.html#customizing-the-vectorizer-classes
-        """
-        tokenize = super(FeatureExtractor, self).build_tokenizer()
-        return lambda doc: list(token_processor(tokenize(doc)))
